@@ -1,7 +1,13 @@
-"use client";
+'use client';
 
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { mockMarkets, mockPrices } from '@/constants/mockData';
+import React, {
+  createContext,
+  useState,
+  useContext,
+  ReactNode,
+  useEffect,
+} from 'react';
+import { mockPrices } from '@/constants/mockData';
 
 type PricesDaoType = {
   prices: any[];
@@ -12,11 +18,13 @@ type PricesDaoType = {
   loading: boolean;
   error: string | null;
   setMarketId: (marketId: string | null) => void;
-}
+};
 
 const PricesDao = createContext<PricesDaoType | undefined>(undefined);
 
-export const PricesDaoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const PricesDaoProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [prices, setPrices] = useState<any[]>([]);
   const [win, setWin] = useState<any | null>(null);
   const [draw, setDraw] = useState<any | null>(null);
@@ -31,11 +39,14 @@ export const PricesDaoProvider: React.FC<{ children: ReactNode }> = ({ children 
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`https://cors-anywhere.herokuapp.com/https://api.smarkets.com/v3/markets/${marketId}/last_executed_prices/`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `https://cors-anywhere.herokuapp.com/https://api.smarkets.com/v3/markets/${marketId}/last_executed_prices/`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -44,7 +55,9 @@ export const PricesDaoProvider: React.FC<{ children: ReactNode }> = ({ children 
       setPrices(prices);
 
       if (prices.length === 3) {
-        const sortedPrices = prices.sort((a: any, b: any) => a.contract_id.localeCompare(b.contract_id));
+        const sortedPrices = prices.sort((a: any, b: any) =>
+          a.contract_id.localeCompare(b.contract_id)
+        );
         setWin(sortedPrices[0]);
         setDraw(sortedPrices[1]);
         setLose(sortedPrices[2]);
@@ -54,23 +67,25 @@ export const PricesDaoProvider: React.FC<{ children: ReactNode }> = ({ children 
         setLose(null);
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An unknown error occurred');
+      setError(
+        error instanceof Error ? error.message : 'An unknown error occurred'
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const fetchMockData = () => {
-
     setLoading(true);
     setError(null);
     try {
-      // Using mock data to simulate fetching
       const result = mockPrices;
       setPrices(result.last_executed_prices[57257201]);
-      
+
       if (prices.length === 3) {
-        const sortedPrices = prices.sort((a: any, b: any) => a.contract_id.localeCompare(b.contract_id));
+        const sortedPrices = prices.sort((a: any, b: any) =>
+          a.contract_id.localeCompare(b.contract_id)
+        );
         setWin(sortedPrices[0]);
         setDraw(sortedPrices[1]);
         setLose(sortedPrices[2]);
@@ -87,18 +102,28 @@ export const PricesDaoProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   useEffect(() => {
-    //fetchPrices();
-    fetchMockData();
+    fetchPrices();
+    //fetchMockData();
   }, [marketId]);
 
   return (
-    <PricesDao.Provider value={{ prices, win, draw, lose, fetchPrices, loading, error, setMarketId }}>
+    <PricesDao.Provider
+      value={{
+        prices,
+        win,
+        draw,
+        lose,
+        fetchPrices,
+        loading,
+        error,
+        setMarketId,
+      }}
+    >
       {children}
     </PricesDao.Provider>
   );
 };
 
-// Custom hook to use the PricesDao
 export const usePricesDao = (): PricesDaoType => {
   const context = useContext(PricesDao);
   if (context === undefined) {
